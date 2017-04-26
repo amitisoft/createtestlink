@@ -1,0 +1,15 @@
+{
+    "Res": {
+        "emails": [
+		"abc@gmail.com",
+		"nandini@gmail.com",
+		"ashok@gmail.com"
+	],
+	"subject": "hi subject",
+	"postionapplied": "java developer",
+	"body": " Interview for Java/QA/IOS developer",
+	"category": "java"
+    }
+	
+
+}
