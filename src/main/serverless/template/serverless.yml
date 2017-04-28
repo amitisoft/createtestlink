@@ -1,5 +1,4 @@
 # Welcome to Serverless!
-#
 # This file is the main config file for your service.
 # It's very minimal at this point and uses default values.
 # You can always add more config options for more control.
@@ -22,9 +21,8 @@ provider:
   runtime: nodejs4.3
   profile: shortlist-serverless-template-dev
   environment:
-    DYNAMODB_TABLE: "candidate"
-    BOOKING_TABLE: "booking"
-                    
+    DYNAMODB_TABLE: "candidate1"
+    BOOKING_TABLE : "booking1"
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -34,77 +32,42 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}/*"
+
+    - Effect: Allow
+      Action:
+        - execute-api:Invoke
+      Resource: "arn:aws:execute-api:us-east-1:*:*"
 
 functions:
-  createCandidate:
-    handler: handler.createCandiateHandler
+
+  getAllCandidatesFunction:
+    handler: handler.getAllCandidatesFunction
     events:
       - http:
-          path: api/candidates
+          path: api/allcandidates
+          method: get
+         #authorizer: arn:aws:lambda:us-east-1:917291829364:function:hr-auth-master-dev-authorize
+          resultTtlInSeconds: 0
+          cors: true
+
+  createTestLinkFunction:
+    handler: handler.createTestLinkFunction
+    events:
+      - http:
+          path: api/testlink
           method: post
+         #authorizer: arn:aws:lambda:us-east-1:917291829364:function:hr-auth-master-dev-authorize
+          resultTtlInSeconds: 0
           cors: true
-
-  getCandidate:
-    handler: handler.getCandidate
-    events:
-      - http:
-          path: api/candidates/{id}
-          method: get
-          cors: true
-
-  updateCandidate:
-    handler: handler.updateCandidate
-    events:
-      - http:
-          path: api/candidates/{id}
-          method: put
-          cors: true
-
-  getAllCandidates:
-    handler: handler.getAllCandidatesHandler
-    events:
-      - http:
-          path: api/allcandidates
-          method: get
-          cors: true
-
-  updateBooking:
-    handler: handler.updateBookingHandler
-    events:
-      - http:
-          path: api/allcandidates
-          method: put
-          cors: true
-  
-  updateBookingCandidateInfo:
-    handler: handler.updateBookingHandler
-    events:
-      - http:
-          path: api/bookings/
-          method: put
-          cors: true
-
-  getAllBookings:
-    handler: handler.getBookingHandler
-    events:
-      - http:
-          path: api/bookingCandidates
-          method: get
-          cors: true
-
-findCandidateEmailHandler:
-    handler: handler.findEmailHandler
-    events:
-      - http:
-          path: api/candidate/{email}
-          method: get
-          cors: true
+#      - schedule:
+#          rate: rate(10 minutes)
+#          enabled: true
 
 
 resources:
   Resources:
-     candidate:
+     candidate1:
           Type: 'AWS::DynamoDB::Table'
           DeletionPolicy: Retain
           Properties:
@@ -113,7 +76,7 @@ resources:
               - AttributeName: candidateId
                 AttributeType: S
               - AttributeName: email
-                AttributeType: S                
+                AttributeType: S
             KeySchema:
               - AttributeName: candidateId
                 KeyType: HASH
@@ -134,19 +97,34 @@ resources:
                 ProvisionedThroughput: 
                   ReadCapacityUnits: "5"
                   WriteCapacityUnits: "5"
-            
-     booking:
+
+     booking1:
           Type: 'AWS::DynamoDB::Table'
           DeletionPolicy: Retain
           Properties:
             TableName: ${self:provider.environment.BOOKING_TABLE}
             AttributeDefinitions:
+              - AttributeName: bookingId
+                AttributeType: S
               - AttributeName: candidateId
                 AttributeType: S
             KeySchema:
-              - AttributeName: candidateId
+              - AttributeName: bookingId
                 KeyType: HASH
             ProvisionedThroughput:
               ReadCapacityUnits: 2
               WriteCapacityUnits: 2
-           
+            GlobalSecondaryIndexes: 
+              - 
+                IndexName: "b_candidateId"
+                KeySchema: 
+                  - 
+                    AttributeName: "candidateId"
+                    KeyType: HASH
+                Projection: 
+                  #NonKeyAttributes: 
+                    #- "candidateId,category,dateofExam,jobPosition,bookingId"
+                  ProjectionType: "ALL"
+                ProvisionedThroughput: 
+                  ReadCapacityUnits: "5"
+                  WriteCapacityUnits: "5"

@@ -1,5 +1,6 @@
-export class Booking {
+export class BookingDto {
     candiateId: string;
+    bookingId:string;
     category: string;
     jobPosition:string;
     dateofExam: string;
@@ -7,4 +8,3 @@ export class Booking {
     testStatus:string;
     startTime:number;
 }
-
