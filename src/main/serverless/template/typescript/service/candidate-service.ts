@@ -19,13 +19,11 @@ export class CandidateServiceImpl {
     constructor() {
         console.log("in CandidateServiceImpl constructor()");
     }
+   // checking email is Exist or not in Candidate table
+                     checkIsEmailExist(data: any): Observable<Candidate> {
+                     console.log("in CandidateServiceImpl checkIsEmailExist()");
 
-
-    // checking email is Exist or not
-    checkIsEmailExist(data: any): Observable<Candidate> {
-        console.log("in CandidateServiceImpl checkIsEmailExist()");
-
-        let emailid = data.emails;
+                     let emailid = data.emails;
         const queryParams: DynamoDB.Types.QueryInput = {
             TableName: "candidate1",
             IndexName: "emailIndex",
@@ -49,21 +47,21 @@ export class CandidateServiceImpl {
                 }
                 console.log(`data items:Email receieved ${data.Items.length}`);
                 if (data.Items.length === 0) {
-                    console.log("no Email exist in candidates"); // Email is not present
+                    console.log(" Email is not exist in candidates table "); //  Email is not present send to this msg
                     observer.complete();
                     return;
                 }
                 console.log("candidateID", data.Items[0].candidateId); // if email is exist then get the candidate Id
-                observer.next(data.Items[0]);
+                observer.next(data.Items[0]);                         //
                 observer.complete();
             });
         });
     }
-
-    // check Cabdidate ID exist or not in Booking table
-    findById(candidateId: string, data: any): Observable<Booking[]> {
+      
+    // check Candidate ID exist or not in Booking table
+      
+    findById(candidateId: string, reqdata: any): Observable<Booking[]> {
         console.log("in CandidateServiceImpl findById()");
-        console.log(candidateId);
         const queryParams: DynamoDB.Types.QueryInput = {
             TableName: "booking1",
             IndexName: "b_candidateId",
@@ -79,68 +77,82 @@ export class CandidateServiceImpl {
         const documentClient = new DocumentClient();
         return Observable.create((observer: Observer<Booking[]>) => {
             console.log("Executing query with parameters " + queryParams);
-            documentClient.query(queryParams, (err, data1: any) => {
+            documentClient.query(queryParams, (err, data: any) => {
                 console.log(`did we get error ${err}`);
                 if (err) {
                     observer.error(err);
                     throw err;
                 }
-                console.log(`data items receieved ${data1.Items.length}`);
-
-                if (data1.Items.length === 0) {
-                    console.log(` this candidateID  ${candidateId} is not Exist in the Booking Table  `); //consider as a frehser
+                console.log(`data items receieved ${data.Items.length}`);
+                //CandidateId is not exist in the Booking Table consider as a frehser  then book the slot.
+                if (data.Items.length === 0) {
+                    console.log(` this candidateID  ${candidateId} is not Exist in the Booking Table  `); 
                     let token = Math.random().toString(36).substr(2);
                     let bookingId = uuid.v4();
-
-                    this.updateBookingInfo(bookingId, candidateId, token, data.category, data.jobPosition)
-                        .then(this.updateCandidateInfo);
-                    this.sendEmail(data.emails, data.emailsubject, data.emailbody, token);
+                    this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
+                        .then(this.updateCandidateInfo.bind(this))
+                        .then(this.sendEmail.bind(this))
+                        .then(() => {
+                            console.log(" Success fully Sending mails");
+                        }, (rej) => {
+                            console.log("rejected", rej);
+                        });
                     observer.complete();
                     return;
                 }
-                // let categoryArray: any = [];
-                // let dateOfExamArray: any = [];
-                // data1.Items.forEach((item) => {
-                //     console.log(`this Booking Id(s) ${item.bookingId}`);
-                //       console.log(`Booking Categorie(s) ${item.category}`);
-                //       console.log(`Applied Job Position(s) ${item.jobPosition}`);
-                //       console.log(`Attended Exam Date(s) ${item.dateofExam}`);
-                //     categoryArray.push(item.category);
-                //     dateOfExamArray.push(item.dateofExam);
-                // });
-
-                var cate = data.category;
+                else
+                {
+                var cate = reqdata.category;
+                console.log(cate);
                 var sortingDatesArray = [];
-                for (var i = 0; i < data1.Items.length; i++) {
-                    if (cate === data1.Items[i].category)
-                        sortingDatesArray.push(data1.Items[i].dateofExam); //by me
+                for (var i = 0; i < data.Items.length; i++) {
+                    if (cate === data.Items[i].category)
+                        {
+                         sortingDatesArray.push(data.Items[i].dateofExam); 
+                        }
+                    else{
+                       
+                     }
                 }
+                
                 var srtarr = [];
                 for (var i = 0; i < sortingDatesArray.length; i++) {
-                    var df = sortingDatesArray[i].split('-');
-                    srtarr.push(Date.UTC(df[0], df[1] - 1, df[2]));
+                    var df = sortingDatesArray[i].split('-'); 
+                    srtarr.push(Date.UTC(df[0], df[1] - 1, df[2]));// convert UTC format
                 }
-                srtarr.sort();
+                srtarr.sort();// dates sorting 
                 var oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
                 var diffDays = Math.round(Math.abs((new Date(srtarr[i - 1]).getTime() - new Date().getTime()) / (oneDay)));
-                //console.log(diffDays);
+                console.log(diffDays);
+          
+            // validation of dates
                 if (30 < diffDays) {
+                    let token = Math.random().toString(36).substr(2);
+                    let bookingId = uuid.v4();
                     console.log(" allow");
-                    //send mail
+                    this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
+                        .then(this.updateCandidateInfo.bind(this))
+                        .then(this.sendEmail.bind(this))
+                        .then(() => {
+                            console.log(" Success fully Sending mails");
+                        }, (rej) => {
+                            console.log("rejected", rej);
+                        });
                 }
                 else {
                     console.log("System does not allow with in 30 Days")
                 }
-                observer.next(data1.Items);
+                }
+                observer.next(data.Items);
                 observer.complete();
 
             });
         });
     }
 
-
-    updateCandidateInfo(result: any) {
-        console.log(`Update the tokenId :  ${result.token} in candidate table `);
+    // Before send  a mail: step 2->  Update the tokenid in Candidate table based on CandidateID
+    updateCandidateInfo(result:any) {
+        console.log(`Update the tokenId :${result.token} in candidate table `);
         const documentClient = new DocumentClient();
         const params = {
             TableName: "candidate1",
@@ -164,14 +176,15 @@ export class CandidateServiceImpl {
                     reject(err);
                     return;
                 }
-                //console.log(`result ${JSON.stringify(data)}`);
-                console.log("update the TokenId in Candidate Table");
-                resolve({ result: result.token });
+                console.log("update the TokenId in Candidate Table", result);
+                resolve({ result:result });
+
             });
         });
     }
 
-    updateBookingInfo(bookingId: string, candidateId: string, token: string, category: string, jobPosition: string) {
+    // Before Sending a mail, Step->1 Update Booking table - bookingid,candidateid,category,jobposition
+    updateBookingInfo(bookingId: string, candidateId: string, token: string, category: string, jobPosition: string, emailids: any, emailsubject: string, emailbody: any) {
         console.log(" update the information in Booking");
         console.log(`data received ${candidateId}`);
         console.log(`data received ${category}`);
@@ -190,8 +203,7 @@ export class CandidateServiceImpl {
                 '#ct': 'category',
                 '#jp': 'jobPosition',
                 "#ts": 'testStatus'
-
-            },
+           },
             ExpressionAttributeValues: {
                 ':cid': candidateId,
                 ':ct': category,
@@ -201,7 +213,6 @@ export class CandidateServiceImpl {
             UpdateExpression: 'SET #cid=:cid,#ct=:ct,#jp=:jp, #ts=:ts',
             ReturnValues: 'ALL_NEW',
         };
-
         return new Promise(function (resolve, reject) {
             documentClient.update(params, (err, data: any) => {
                 if (err) {
@@ -209,44 +220,42 @@ export class CandidateServiceImpl {
                     reject("data is not inserted");
                 } else {
                     console.log("updated booking...")
-                    resolve({ candidateId, token });
+                    resolve({ candidateId, token, emailids, emailsubject, emailbody });
                 }
-
             });
         });
     }
-
-    sendEmail(emailid: string, esubject: string, ebody: string, tokenid: string) {
+     // send  mail to respective emailid - {email,body,subject}
+    sendEmail(result:any) {
+        const mydata = (JSON.parse(JSON.stringify(result)));
+        console.log("emailids", mydata.result.emailids);
         const emailConfig = {
             region: 'us-east-1'
         };
-
+        let that = this;
+        console.log('that:' + JSON.stringify(that));
         const emailSES = new SES(emailConfig);
-
-        const p = new Promise((res, rej) => {
-
-            if (!emailid) {
+        const prom = new Promise((res, rej) => {
+            if (!mydata.result.emailids) {
                 rej('Please provide email');
-                return;
+                return prom;
             }
-
-            const emailParams: AWS.SES.SendEmailRequest = this.createEmailParamConfig(emailid, esubject, ebody, tokenid);
-            emailSES.sendEmail(emailParams, (err: any, data: AWS.SES.SendEmailResponse) => {
+          const emailParams: AWS.SES.SendEmailRequest = that.createEmailParamConfig(mydata.result.emailids, 
+                                                        mydata.result.emailsubject,mydata.result.emailbody,result.tokenid);
+            emailSES.sendEmail(emailParams,(err: any, data: AWS.SES.SendEmailResponse) => {
                 if (err) {
                     console.log(err);
                     rej(`Error in sending out email ${err}`)
-                    return;
+                    return prom;
                 }
-
-                res(`Successfully sent email to ${emailid}`);
-
+                res(`Successfully sent email to ${mydata.result.emails}`);
             });
-
         });
+        return prom;
     }
 
-    private createEmailParamConfig(email, subject, body, tokenid): AWS.SES.SendEmailRequest {
-        const params = {
+    private createEmailParamConfig(email,subject,body,tokenid): AWS.SES.SendEmailRequest {
+            const params = {
             Destination: {
                 BccAddresses: [],
                 CcAddresses: [],
@@ -256,7 +265,8 @@ export class CandidateServiceImpl {
                 Body: {
 
                     Html: {
-                        Data: this.generateEmailTemplate("ashok@amitisoft.com", tokenid, body),
+                        Data: body,
+                        //this.generateEmailTemplate("ashok@amitisoft.com", tokenid, body),
                         Charset: 'UTF-8'
                     }
                 },
@@ -272,7 +282,8 @@ export class CandidateServiceImpl {
         return params;
     }
 
-    private generateEmailTemplate(emailFrom: string, tokenid: string, emailbody: string): string {
+    private generateEmailTemplate(emailFrom: string, tokenid: any, emailbody: any): string {
+        console.log("generate email");
         return `
          <!DOCTYPE html>
          <html>
@@ -281,7 +292,7 @@ export class CandidateServiceImpl {
              <title>title</title>
            </head>
            <body>
-            emailbody       
+                  
             <table border='0' cellpadding='0' cellspacing='0' height='100%' width='100%' id='bodyTable'>
              <tr>
                  <td align='center' valign='top'>

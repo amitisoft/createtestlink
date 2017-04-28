@@ -10,7 +10,7 @@ export class TestLinkHandler {
         //console.log(JSON.stringify(data)); 
         injector.get(CandidateFacade).checkIsEmailExist(data)
             .subscribe(result => {
-                injector.get(CandidateFacade).findById(JSON.parse(JSON.stringify(result)).candidateId, data)
+                injector.get(CandidateFacade).findById(JSON.parse(JSON.stringify(result)).candidateId,data)
                     .subscribe(result => {
                         httpContext.ok(200, result);
                     }, err => {

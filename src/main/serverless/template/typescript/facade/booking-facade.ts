@@ -14,43 +14,5 @@ export class  BookingFacade {
         console.log("in BookingFacade constructor()");
     }
 
-    // getAll(): Observable<CandidatesDto> {
-    //     console.log("in CandidateFacade getAll()");
-
-    //     return this.candidateService.getAll()
-    //         .map((candidates) => {
-    //             return {
-    //                 candidates: candidates.map(this.mapCandidateToDto)
-    //             }
-    //         });
-    // }
-
-    // findbyId(candidateId: string): Observable<Candidate> {
-    //     console.log("in CandidateFacade findById()");
-    //     return this.candidateService.findById(candidateId);
-    // }
-
-    // findbyEmail(candidateId:string): Observable<Candidate> {
-    //     console.log("in CandidateFacade findById()");
-    //     return this.candidateService.findById(candidateId);
-    // }
-
-
-    // private mapCandidateToDto(candidate: Candidate): CandidateDto {
-    //     console.log("in mapCandidateToDto" + JSON.stringify(candidate));
-    //     return {
-    //         candidateId: candidate.candiateId,
-    //         fullName: `${candidate.firstName} ${candidate.lastName}`,
-    //         email: candidate.email
-    //     }
-    // }
-
-
-//     findByEmail(data :any): Observable<Candidate> {
-//     return this.candidateService.findByEmail(data);
-//   }
-
-//   findById(data :any): Observable<Candidate> {
-//     return this.candidateService.getCandidateBookingInfo(data);
-//   }
+    
 }
