@@ -96,7 +96,7 @@
                     "dynamodb:UpdateItem",
                     "dynamodb:DeleteItem"
                   ],
-                  "Resource": "arn:aws:dynamodb:us-east-1:*:table/booking1/*"
+                  "Resource": "arn:aws:dynamodb:us-east-1:*:table/booking1"
                 },
                 {
                   "Effect": "Allow",
@@ -130,7 +130,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/shortlist-template/dev/1493384727645-2017-04-28T13:05:27.645Z/shortlist-template.zip"
+          "S3Key": "serverless/shortlist-template/dev/1493698681662-2017-05-02T04:18:01.662Z/shortlist-template.zip"
         },
         "FunctionName": "shortlist-template-dev-createTestLinkFunction",
         "Handler": "handler.createTestLinkFunction",
@@ -155,14 +155,14 @@
         "IamRoleLambdaExecution"
       ]
     },
-    "CreateTestLinkFunctionLambdaVersionHh9evyyXSqfJm7pYHCrKyu6T0KIwtlLpuvfIvvbBA": {
+    "CreateTestLinkFunctionLambdaVersionChosL6nXfSLQ5umieKS8ec5SFyrZtLskXBIobxXAaI": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "CreateTestLinkFunctionLambdaFunction"
         },
-        "CodeSha256": "Hh9evyyXSq+fJm7pYHCrKyu6T0KIwtlLpuvfIvvbB/A="
+        "CodeSha256": "ChosL6nXfSLQ5umieKS8ec5SFyrZtLskXBI/obxXAaI="
       }
     },
     "ApiGatewayRestApi": {
@@ -282,7 +282,7 @@
         "MethodResponses": []
       }
     },
-    "ApiGatewayDeployment1493384727659": {
+    "ApiGatewayDeployment1493698681675": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -430,7 +430,7 @@
     "CreateTestLinkFunctionLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "CreateTestLinkFunctionLambdaVersionHh9evyyXSqfJm7pYHCrKyu6T0KIwtlLpuvfIvvbBA"
+        "Ref": "CreateTestLinkFunctionLambdaVersionChosL6nXfSLQ5umieKS8ec5SFyrZtLskXBIobxXAaI"
       }
     },
     "ServiceEndpoint": {

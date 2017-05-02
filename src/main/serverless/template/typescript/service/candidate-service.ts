@@ -100,21 +100,35 @@ export class CandidateServiceImpl {
                     observer.complete();
                     return;
                 }
+                           
                 else
                 {
                 var cate = reqdata.category;
                 console.log(cate);
+              
                 var sortingDatesArray = [];
                 for (var i = 0; i < data.Items.length; i++) {
                     if (cate === data.Items[i].category)
                         {
-                         sortingDatesArray.push(data.Items[i].dateofExam); 
+                        sortingDatesArray.push(data.Items[i].dateofExam); 
                         }
-                    else{
-                       
-                     }
-                }
+                    }
                 
+                   if(sortingDatesArray.length ===0) // category does  not exist means ,candidate appling new category
+                   {
+                    let token = Math.random().toString(36).substr(2);
+                    let bookingId = uuid.v4();
+                    this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
+                        .then(this.updateCandidateInfo.bind(this))
+                        .then(this.sendEmail.bind(this))
+                        .then(() => {
+                            console.log(" Success fully Sending mails");
+                        }, (rej) => {
+                            console.log("rejected", rej);
+                        });
+                   }
+                   else
+                   {
                 var srtarr = [];
                 for (var i = 0; i < sortingDatesArray.length; i++) {
                     var df = sortingDatesArray[i].split('-'); 
@@ -129,7 +143,7 @@ export class CandidateServiceImpl {
                 if (30 < diffDays) {
                     let token = Math.random().toString(36).substr(2);
                     let bookingId = uuid.v4();
-                    console.log(" allow");
+                    //console.log(" allow");
                     this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
                         .then(this.updateCandidateInfo.bind(this))
                         .then(this.sendEmail.bind(this))
@@ -142,6 +156,7 @@ export class CandidateServiceImpl {
                 else {
                     console.log("System does not allow with in 30 Days")
                 }
+            }
                 }
                 observer.next(data.Items);
                 observer.complete();
@@ -176,7 +191,7 @@ export class CandidateServiceImpl {
                     reject(err);
                     return;
                 }
-                console.log("update the TokenId in Candidate Table", result);
+                //console.log("update the TokenId in Candidate Table", result);
                 resolve({ result:result });
 
             });
@@ -185,11 +200,11 @@ export class CandidateServiceImpl {
 
     // Before Sending a mail, Step->1 Update Booking table - bookingid,candidateid,category,jobposition
     updateBookingInfo(bookingId: string, candidateId: string, token: string, category: string, jobPosition: string, emailids: any, emailsubject: string, emailbody: any) {
-        console.log(" update the information in Booking");
-        console.log(`data received ${candidateId}`);
-        console.log(`data received ${category}`);
-        console.log(`data received ${jobPosition}`);
-        console.log(`data received ${bookingId}`);
+        // console.log(" update the information in Booking");
+        // console.log(`data received ${candidateId}`);
+        // console.log(`data received ${category}`);
+        // console.log(`data received ${jobPosition}`);
+        // console.log(`data received ${bookingId}`);
 
         let testStatus = "Nottaken";
         const documentClient = new DocumentClient();
@@ -219,7 +234,7 @@ export class CandidateServiceImpl {
                     console.log(err);
                     reject("data is not inserted");
                 } else {
-                    console.log("updated booking...")
+                    console.log("updated booking Information in Booking Table")
                     resolve({ candidateId, token, emailids, emailsubject, emailbody });
                 }
             });
@@ -228,7 +243,7 @@ export class CandidateServiceImpl {
      // send  mail to respective emailid - {email,body,subject}
     sendEmail(result:any) {
         const mydata = (JSON.parse(JSON.stringify(result)));
-        console.log("emailids", mydata.result.emailids);
+        //console.log("emailids", mydata.result.emailids);
         const emailConfig = {
             region: 'us-east-1'
         };
@@ -265,7 +280,7 @@ export class CandidateServiceImpl {
                 Body: {
 
                     Html: {
-                        Data: body,
+                        Data: body +tokenid,
                         //this.generateEmailTemplate("ashok@amitisoft.com", tokenid, body),
                         Charset: 'UTF-8'
                     }
