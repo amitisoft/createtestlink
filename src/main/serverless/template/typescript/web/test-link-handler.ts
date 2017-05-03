@@ -1,16 +1,17 @@
 import { CandidateFacade } from '../facade/candidate-facade';
 import { Injector } from '@angular/core';
 import { HttpContextImpl } from "../http/http-context-impl";
+import { BookingFacade } from '../facade/booking-facade';
 
 export class TestLinkHandler {
 
 
-    static checkIsEmailExist(httpContext: HttpContextImpl, injector: Injector): void {
+    static findCandidateByEmailId(httpContext: HttpContextImpl, injector: Injector): void {
         let data = httpContext.getRequestBody();
         //console.log(JSON.stringify(data)); 
-        injector.get(CandidateFacade).checkIsEmailExist(data)
+        injector.get(CandidateFacade).findCandidateByEmailId(data)
             .subscribe(result => {
-                injector.get(CandidateFacade).findById(JSON.parse(JSON.stringify(result)).candidateId,data)
+                injector.get(BookingFacade).findByCandidateId(JSON.parse(JSON.stringify(result)).candidateId,data)
                     .subscribe(result => {
                         httpContext.ok(200, result);
                     }, err => {

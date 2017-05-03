@@ -16,15 +16,8 @@ export class CandidateFacade {
     console.log("in CandidateFacade constructor()");
   }
 
-  checkIsEmailExist(data: any): Observable<Candidate> {
-    return this.candidateService.checkIsEmailExist(data);
+  findCandidateByEmailId(data: any): Observable<string> {
+    return this.candidateService.findCandidateByEmailId(data);
   }
 
-  findById(candidateId: string, data: any): Observable<Booking[]> {
-    console.log("in CandidateFacade findById()");
-    return this.candidateService.findById(candidateId, data);
-  }
-
-
-
-}
+ }

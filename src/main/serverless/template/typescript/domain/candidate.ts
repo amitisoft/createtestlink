@@ -4,5 +4,6 @@ export class Candidate {
     lastName: string;
     email: string;
     phoneNumber: number;
+
 }
 

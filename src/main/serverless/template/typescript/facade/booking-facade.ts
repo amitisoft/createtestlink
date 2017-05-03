@@ -4,6 +4,7 @@ import {CandidateServiceImpl} from '../service/candidate-service';
 import {CandidateDto} from '../dto/candidate-dto';
 import {CandidatesDto} from '../dto/candidates-dto';
 import {Candidate} from '../domain/candidate';
+import {Booking} from '../domain/booking';
 import {BookingServiceImpl} from '../service/booking-service';
 
 
@@ -14,5 +15,8 @@ export class  BookingFacade {
         console.log("in BookingFacade constructor()");
     }
 
-    
+    findByCandidateId(candidateId: string, data: any): Observable<Booking[]> {
+    console.log("in BookingFacade findByCandidateId()");
+    return this.bookingService.findByCandidateId(candidateId, data);
+  }
 }

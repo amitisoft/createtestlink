@@ -82,21 +82,14 @@
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "execute-api:Invoke"
+                    "dynamodb:*"
                   ],
-                  "Resource": "arn:aws:execute-api:us-east-1:*:*"
+                  "Resource": "*"
                 },
                 {
                   "Effect": "Allow",
-                  "Action": [
-                    "dynamodb:Query",
-                    "dynamodb:Scan",
-                    "dynamodb:GetItem",
-                    "dynamodb:PutItem",
-                    "dynamodb:UpdateItem",
-                    "dynamodb:DeleteItem"
-                  ],
-                  "Resource": "arn:aws:dynamodb:us-east-1:*:table/booking1"
+                  "Action": "SES:SendEmail",
+                  "Resource": "*"
                 },
                 {
                   "Effect": "Allow",
@@ -130,7 +123,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/shortlist-template/dev/1493698681662-2017-05-02T04:18:01.662Z/shortlist-template.zip"
+          "S3Key": "serverless/shortlist-template/dev/1493801624099-2017-05-03T08:53:44.099Z/shortlist-template.zip"
         },
         "FunctionName": "shortlist-template-dev-createTestLinkFunction",
         "Handler": "handler.createTestLinkFunction",
@@ -155,14 +148,14 @@
         "IamRoleLambdaExecution"
       ]
     },
-    "CreateTestLinkFunctionLambdaVersionChosL6nXfSLQ5umieKS8ec5SFyrZtLskXBIobxXAaI": {
+    "CreateTestLinkFunctionLambdaVersionVTI8rf5A1lUIUTLZqSmXF0X9FgErvPDmfbnsRui780": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "CreateTestLinkFunctionLambdaFunction"
         },
-        "CodeSha256": "ChosL6nXfSLQ5umieKS8ec5SFyrZtLskXBI/obxXAaI="
+        "CodeSha256": "VTI8rf5A1lUIUTLZqSmXF0X9FgErvPDmfbns+Rui780="
       }
     },
     "ApiGatewayRestApi": {
@@ -282,7 +275,7 @@
         "MethodResponses": []
       }
     },
-    "ApiGatewayDeployment1493698681675": {
+    "ApiGatewayDeployment1493801624116": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -402,7 +395,7 @@
         },
         "GlobalSecondaryIndexes": [
           {
-            "IndexName": "b_candidateId",
+            "IndexName": "candidateIdGSI",
             "KeySchema": [
               {
                 "AttributeName": "candidateId",
@@ -430,7 +423,7 @@
     "CreateTestLinkFunctionLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "CreateTestLinkFunctionLambdaVersionChosL6nXfSLQ5umieKS8ec5SFyrZtLskXBIobxXAaI"
+        "Ref": "CreateTestLinkFunctionLambdaVersionVTI8rf5A1lUIUTLZqSmXF0X9FgErvPDmfbnsRui780"
       }
     },
     "ServiceEndpoint": {

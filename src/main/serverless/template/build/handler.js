@@ -50,7 +50,7 @@ module.exports =
 	var app_context_1 = __webpack_require__(2);
 	var execution_context_impl_1 = __webpack_require__(356);
 	var test_link_handler_1 = __webpack_require__(358);
-	exports.createTestLinkFunction = execution_context_impl_1.ExecutionContextImpl.createHttpHandler(app_context_1.AppProviders, test_link_handler_1.TestLinkHandler.checkIsEmailExist);
+	exports.createTestLinkFunction = execution_context_impl_1.ExecutionContextImpl.createHttpHandler(app_context_1.AppProviders, test_link_handler_1.TestLinkHandler.findCandidateByEmailId);
 
 
 /***/ }),
@@ -1228,8 +1228,8 @@ module.exports =
 	        console.log("in CandidateServiceImpl constructor()");
 	    }
 	    // checking email is Exist or not in Candidate table
-	    CandidateServiceImpl.prototype.checkIsEmailExist = function (data) {
-	        console.log("in CandidateServiceImpl checkIsEmailExist()");
+	    CandidateServiceImpl.prototype.findCandidateByEmailId = function (data) {
+	        console.log("in CandidateServiceImpl findCandidateByEmail()");
 	        var emailid = data.emails;
 	        var queryParams = {
 	            TableName: "candidate1",
@@ -1247,7 +1247,7 @@ module.exports =
 	        return rxjs_1.Observable.create(function (observer) {
 	            console.log("Executing query with parameters " + queryParams);
 	            documentClient.query(queryParams, function (err, data) {
-	                console.log("did we get error " + err);
+	                // console.log(`did we get error ${err}`);
 	                if (err) {
 	                    observer.error(err);
 	                    throw err;
@@ -1255,240 +1255,15 @@ module.exports =
 	                console.log("data items:Email receieved " + data.Items.length);
 	                if (data.Items.length === 0) {
 	                    console.log(" Email is not exist in candidates table "); //  Email is not present send to this msg
+	                    //alert(" Email is not exist in candidates table ");
 	                    observer.complete();
 	                    return;
 	                }
 	                console.log("candidateID", data.Items[0].candidateId); // if email is exist then get the candidate Id
-	                observer.next(data.Items[0]); //
+	                observer.next(data.Items[0]);
 	                observer.complete();
 	            });
 	        });
-	    };
-	    // check Candidate ID exist or not in Booking table
-	    CandidateServiceImpl.prototype.findById = function (candidateId, reqdata) {
-	        var _this = this;
-	        console.log("in CandidateServiceImpl findById()");
-	        var queryParams = {
-	            TableName: "booking1",
-	            IndexName: "b_candidateId",
-	            ProjectionExpression: "category,dateofExam,jobPosition,bookingId",
-	            KeyConditionExpression: "#candidateId = :candidateIdFilter",
-	            ExpressionAttributeNames: {
-	                "#candidateId": "candidateId"
-	            },
-	            ExpressionAttributeValues: {
-	                ":candidateIdFilter": candidateId
-	            }
-	        };
-	        var documentClient = new DocumentClient();
-	        return rxjs_1.Observable.create(function (observer) {
-	            console.log("Executing query with parameters " + queryParams);
-	            documentClient.query(queryParams, function (err, data) {
-	                console.log("did we get error " + err);
-	                if (err) {
-	                    observer.error(err);
-	                    throw err;
-	                }
-	                console.log("data items receieved " + data.Items.length);
-	                //CandidateId is not exist in the Booking Table consider as a frehser  then book the slot.
-	                if (data.Items.length === 0) {
-	                    console.log(" this candidateID  " + candidateId + " is not Exist in the Booking Table  ");
-	                    var token = Math.random().toString(36).substr(2);
-	                    var bookingId = uuid.v4();
-	                    _this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
-	                        .then(_this.updateCandidateInfo.bind(_this))
-	                        .then(_this.sendEmail.bind(_this))
-	                        .then(function () {
-	                        console.log(" Success fully Sending mails");
-	                    }, function (rej) {
-	                        console.log("rejected", rej);
-	                    });
-	                    observer.complete();
-	                    return;
-	                }
-	                else {
-	                    var cate = reqdata.category;
-	                    console.log(cate);
-	                    var sortingDatesArray = [];
-	                    for (var i = 0; i < data.Items.length; i++) {
-	                        if (cate === data.Items[i].category) {
-	                            sortingDatesArray.push(data.Items[i].dateofExam);
-	                        }
-	                    }
-	                    if (sortingDatesArray.length === 0) {
-	                        var token = Math.random().toString(36).substr(2);
-	                        var bookingId = uuid.v4();
-	                        _this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
-	                            .then(_this.updateCandidateInfo.bind(_this))
-	                            .then(_this.sendEmail.bind(_this))
-	                            .then(function () {
-	                            console.log(" Success fully Sending mails");
-	                        }, function (rej) {
-	                            console.log("rejected", rej);
-	                        });
-	                    }
-	                    else {
-	                        var srtarr = [];
-	                        for (var i = 0; i < sortingDatesArray.length; i++) {
-	                            var df = sortingDatesArray[i].split('-');
-	                            srtarr.push(Date.UTC(df[0], df[1] - 1, df[2])); // convert UTC format
-	                        }
-	                        srtarr.sort(); // dates sorting 
-	                        var oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
-	                        var diffDays = Math.round(Math.abs((new Date(srtarr[i - 1]).getTime() - new Date().getTime()) / (oneDay)));
-	                        console.log(diffDays);
-	                        // validation of dates
-	                        if (30 < diffDays) {
-	                            var token = Math.random().toString(36).substr(2);
-	                            var bookingId = uuid.v4();
-	                            //console.log(" allow");
-	                            _this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
-	                                .then(_this.updateCandidateInfo.bind(_this))
-	                                .then(_this.sendEmail.bind(_this))
-	                                .then(function () {
-	                                console.log(" Success fully Sending mails");
-	                            }, function (rej) {
-	                                console.log("rejected", rej);
-	                            });
-	                        }
-	                        else {
-	                            console.log("System does not allow with in 30 Days");
-	                        }
-	                    }
-	                }
-	                observer.next(data.Items);
-	                observer.complete();
-	            });
-	        });
-	    };
-	    // Before send  a mail: step 2->  Update the tokenid in Candidate table based on CandidateID
-	    CandidateServiceImpl.prototype.updateCandidateInfo = function (result) {
-	        console.log("Update the tokenId :" + result.token + " in candidate table ");
-	        var documentClient = new DocumentClient();
-	        var params = {
-	            TableName: "candidate1",
-	            Key: {
-	                candidateId: result.candidateId,
-	            },
-	            ExpressionAttributeNames: {
-	                '#tok': 'tokenId'
-	            },
-	            ExpressionAttributeValues: {
-	                ':tok': result.token
-	            },
-	            UpdateExpression: 'SET #tok=:tok',
-	            ReturnValues: 'ALL_NEW',
-	        };
-	        return new Promise(function (resolve, reject) {
-	            documentClient.update(params, function (err, data) {
-	                if (err) {
-	                    console.error(err);
-	                    reject(err);
-	                    return;
-	                }
-	                //console.log("update the TokenId in Candidate Table", result);
-	                resolve({ result: result });
-	            });
-	        });
-	    };
-	    // Before Sending a mail, Step->1 Update Booking table - bookingid,candidateid,category,jobposition
-	    CandidateServiceImpl.prototype.updateBookingInfo = function (bookingId, candidateId, token, category, jobPosition, emailids, emailsubject, emailbody) {
-	        // console.log(" update the information in Booking");
-	        // console.log(`data received ${candidateId}`);
-	        // console.log(`data received ${category}`);
-	        // console.log(`data received ${jobPosition}`);
-	        // console.log(`data received ${bookingId}`);
-	        var testStatus = "Nottaken";
-	        var documentClient = new DocumentClient();
-	        var params = {
-	            TableName: "booking1",
-	            Key: {
-	                bookingId: bookingId,
-	            },
-	            ExpressionAttributeNames: {
-	                '#cid': 'candidateId',
-	                '#ct': 'category',
-	                '#jp': 'jobPosition',
-	                "#ts": 'testStatus'
-	            },
-	            ExpressionAttributeValues: {
-	                ':cid': candidateId,
-	                ':ct': category,
-	                ':jp': jobPosition,
-	                ':ts': testStatus
-	            },
-	            UpdateExpression: 'SET #cid=:cid,#ct=:ct,#jp=:jp, #ts=:ts',
-	            ReturnValues: 'ALL_NEW',
-	        };
-	        return new Promise(function (resolve, reject) {
-	            documentClient.update(params, function (err, data) {
-	                if (err) {
-	                    console.log(err);
-	                    reject("data is not inserted");
-	                }
-	                else {
-	                    console.log("updated booking Information in Booking Table");
-	                    resolve({ candidateId: candidateId, token: token, emailids: emailids, emailsubject: emailsubject, emailbody: emailbody });
-	                }
-	            });
-	        });
-	    };
-	    // send  mail to respective emailid - {email,body,subject}
-	    CandidateServiceImpl.prototype.sendEmail = function (result) {
-	        var mydata = (JSON.parse(JSON.stringify(result)));
-	        //console.log("emailids", mydata.result.emailids);
-	        var emailConfig = {
-	            region: 'us-east-1'
-	        };
-	        var that = this;
-	        console.log('that:' + JSON.stringify(that));
-	        var emailSES = new aws_sdk_1.SES(emailConfig);
-	        var prom = new Promise(function (res, rej) {
-	            if (!mydata.result.emailids) {
-	                rej('Please provide email');
-	                return prom;
-	            }
-	            var emailParams = that.createEmailParamConfig(mydata.result.emailids, mydata.result.emailsubject, mydata.result.emailbody, result.tokenid);
-	            emailSES.sendEmail(emailParams, function (err, data) {
-	                if (err) {
-	                    console.log(err);
-	                    rej("Error in sending out email " + err);
-	                    return prom;
-	                }
-	                res("Successfully sent email to " + mydata.result.emails);
-	            });
-	        });
-	        return prom;
-	    };
-	    CandidateServiceImpl.prototype.createEmailParamConfig = function (email, subject, body, tokenid) {
-	        var params = {
-	            Destination: {
-	                BccAddresses: [],
-	                CcAddresses: [],
-	                ToAddresses: [email]
-	            },
-	            Message: {
-	                Body: {
-	                    Html: {
-	                        Data: body + tokenid,
-	                        //this.generateEmailTemplate("ashok@amitisoft.com", tokenid, body),
-	                        Charset: 'UTF-8'
-	                    }
-	                },
-	                Subject: {
-	                    Data: subject,
-	                    Charset: 'UTF-8'
-	                }
-	            },
-	            Source: 'ashok@amitisoft.com',
-	            ReplyToAddresses: ['ashok@amitisoft.com'],
-	            ReturnPath: 'ashok@amitisoft.com'
-	        };
-	        return params;
-	    };
-	    CandidateServiceImpl.prototype.generateEmailTemplate = function (emailFrom, tokenid, emailbody) {
-	        console.log("generate email");
-	        return "\n         <!DOCTYPE html>\n         <html>\n           <head>\n             <meta charset='UTF-8' />\n             <title>title</title>\n           </head>\n           <body>\n                  \n            <table border='0' cellpadding='0' cellspacing='0' height='100%' width='100%' id='bodyTable'>\n             <tr>\n                 <td align='center' valign='top'>\n                     <table border='0' cellpadding='20' cellspacing='0' width='600' id='emailContainer'>\n                         <tr style='background-color:#99ccff;'>\n                             <td align='center' valign='top'>\n                                 <table border='0' cellpadding='20' cellspacing='0' width='100%' id='emailBody'>\n                                     <tr>\n                                         <td align='center' valign='top' style='color:#337ab7;'>\n                                             <h3><a href=\"http://mail.amiti.in/verify.html?token=" + tokenid + "\">http://mail.amiti.in/verify.html?token=" + tokenid + "</a>\n                                             </h3>\n                                         </td>\n                                     </tr>\n                                 </table>\n                             </td>\n                         </tr>\n                         <tr style='background-color:#74a9d8;'>\n                             <td align='center' valign='top'>\n                                 <table border='0' cellpadding='20' cellspacing='0' width='100%' id='emailReply'>\n                                     <tr style='font-size: 1.2rem'>\n                                         <td align='center' valign='top'>\n                                             <span style='color:#286090; font-weight:bold;'>Send From:</span> <br/> " + emailFrom + "\n                                         </td>\n                                     </tr>\n                                 </table>\n                             </td>\n                         </tr>\n                     </table>\n                 </td>\n             </tr>\n             </table>\n           </body>\n         </html>\n";
 	    };
 	    return CandidateServiceImpl;
 	}());
@@ -34974,12 +34749,8 @@ module.exports =
 	        this.candidateService = candidateService;
 	        console.log("in CandidateFacade constructor()");
 	    }
-	    CandidateFacade.prototype.checkIsEmailExist = function (data) {
-	        return this.candidateService.checkIsEmailExist(data);
-	    };
-	    CandidateFacade.prototype.findById = function (candidateId, data) {
-	        console.log("in CandidateFacade findById()");
-	        return this.candidateService.findById(candidateId, data);
+	    CandidateFacade.prototype.findCandidateByEmailId = function (data) {
+	        return this.candidateService.findCandidateByEmailId(data);
 	    };
 	    return CandidateFacade;
 	}());
@@ -35005,7 +34776,11 @@ module.exports =
 	    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var core_1 = __webpack_require__(4);
+	var rxjs_1 = __webpack_require__(38);
+	var aws_sdk_1 = __webpack_require__(346);
 	var AWS = __webpack_require__(346);
+	var uuid = __webpack_require__(347);
+	var DocumentClient = aws_sdk_1.DynamoDB.DocumentClient;
 	AWS.config.update({
 	    region: "us-east-1"
 	});
@@ -35013,6 +34788,230 @@ module.exports =
 	    function BookingServiceImpl() {
 	        console.log("in BookingServiceImpl constructor()");
 	    }
+	    // check Candidate ID exist or not in Booking table
+	    BookingServiceImpl.prototype.findByCandidateId = function (candidateId, reqdata) {
+	        var _this = this;
+	        console.log("in BookingServiceImpl findByCandidateId()");
+	        var queryParams = {
+	            TableName: "booking1",
+	            IndexName: "candidateIdGSI",
+	            ProjectionExpression: "category,dateofExam,jobPosition,bookingId",
+	            KeyConditionExpression: "#candidateId = :candidateIdFilter",
+	            ExpressionAttributeNames: {
+	                "#candidateId": "candidateId"
+	            },
+	            ExpressionAttributeValues: {
+	                ":candidateIdFilter": candidateId
+	            }
+	        };
+	        var documentClient = new DocumentClient();
+	        return rxjs_1.Observable.create(function (observer) {
+	            console.log("Executing query with parameters " + queryParams);
+	            documentClient.query(queryParams, function (err, data) {
+	                console.log("did we get error " + err);
+	                if (err) {
+	                    observer.error(err);
+	                    throw err;
+	                }
+	                console.log("data items receieved " + data.Items.length);
+	                //CandidateId is not exist in the Booking Table consider as a frehser  then book the slot.
+	                if (data.Items.length === 0) {
+	                    console.log(" this candidateID  " + candidateId + " is not Exist in the Booking Table  ");
+	                    var token = Math.random().toString(36).substr(2);
+	                    var bookingId = uuid.v4();
+	                    _this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
+	                        .then(_this.updateCandidateInfo.bind(_this))
+	                        .then(_this.sendEmail.bind(_this))
+	                        .then(function () {
+	                        console.log(" Success fully Sending mails");
+	                    }, function (rej) {
+	                        console.log("rejected", rej);
+	                    });
+	                    observer.complete();
+	                    return;
+	                }
+	                var cate = reqdata.category;
+	                console.log(cate);
+	                var sortingDatesArray = [];
+	                for (var i = 0; i < data.Items.length; i++) {
+	                    if (cate === data.Items[i].category) {
+	                        sortingDatesArray.push(data.Items[i].dateofExam);
+	                    }
+	                }
+	                if (sortingDatesArray.length === 0) {
+	                    var token = Math.random().toString(36).substr(2);
+	                    var bookingId = uuid.v4();
+	                    _this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
+	                        .then(_this.updateCandidateInfo.bind(_this))
+	                        .then(_this.sendEmail.bind(_this))
+	                        .then(function () {
+	                        console.log(" Success fully Sending mails");
+	                    }, function (rej) {
+	                        console.log("rejected", rej);
+	                    });
+	                }
+	                else {
+	                    var srtarr = [];
+	                    for (var i = 0; i < sortingDatesArray.length; i++) {
+	                        var df = sortingDatesArray[i].split('-');
+	                        srtarr.push(Date.UTC(df[0], df[1] - 1, df[2])); // convert UTC format
+	                    }
+	                    srtarr.sort(); // dates sorting 
+	                    var oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+	                    var diffDays = Math.round(Math.abs((new Date(srtarr[i - 1]).getTime() - new Date().getTime()) / (oneDay)));
+	                    console.log(diffDays);
+	                    // validation of dates
+	                    if (30 < diffDays) {
+	                        var token = Math.random().toString(36).substr(2);
+	                        var bookingId = uuid.v4();
+	                        //console.log(" allow");
+	                        _this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
+	                            .then(_this.updateCandidateInfo.bind(_this))
+	                            .then(_this.sendEmail.bind(_this))
+	                            .then(function () {
+	                            console.log(" Success fully Sending mails");
+	                        }, function (rej) {
+	                            console.log("rejected", rej);
+	                        });
+	                    }
+	                    else {
+	                        console.log("System does not allow with in 30 Days");
+	                    }
+	                }
+	                observer.next(data.Items);
+	                observer.complete();
+	            });
+	        });
+	    };
+	    // Before send  a mail: step 2->  Update the tokenid in Candidate table based on CandidateID
+	    BookingServiceImpl.prototype.updateCandidateInfo = function (result) {
+	        console.log("Update the tokenId :" + result.token + " in candidate table ");
+	        var documentClient = new DocumentClient();
+	        var params = {
+	            TableName: "candidate1",
+	            Key: {
+	                candidateId: result.candidateId,
+	            },
+	            ExpressionAttributeNames: {
+	                '#tok': 'tokenId'
+	            },
+	            ExpressionAttributeValues: {
+	                ':tok': result.token
+	            },
+	            UpdateExpression: 'SET #tok=:tok',
+	            ReturnValues: 'ALL_NEW',
+	        };
+	        return new Promise(function (resolve, reject) {
+	            documentClient.update(params, function (err, data) {
+	                if (err) {
+	                    console.error(err);
+	                    reject(err);
+	                    return;
+	                }
+	                //console.log("update the TokenId in Candidate Table", result);
+	                resolve({ result: result });
+	            });
+	        });
+	    };
+	    // Before Sending a mail, Step->1 Update Booking table - bookingid,candidateid,category,jobposition
+	    BookingServiceImpl.prototype.updateBookingInfo = function (bookingId, candidateId, token, category, jobPosition, emailids, emailsubject, emailbody) {
+	        console.log(" update the information in Booking");
+	        console.log("data received CandidateId : " + candidateId);
+	        console.log("data received Category :" + category);
+	        console.log("data received jobPosition :" + jobPosition);
+	        console.log("data received bookingId :" + bookingId);
+	        var testStatus = "Nottaken";
+	        var documentClient = new DocumentClient();
+	        var params = {
+	            TableName: "booking1",
+	            Key: {
+	                bookingId: bookingId,
+	            },
+	            ExpressionAttributeNames: {
+	                '#cid': 'candidateId',
+	                '#ct': 'category',
+	                '#jp': 'jobPosition',
+	                "#ts": 'testStatus'
+	            },
+	            ExpressionAttributeValues: {
+	                ':cid': candidateId,
+	                ':ct': category,
+	                ':jp': jobPosition,
+	                ':ts': testStatus
+	            },
+	            UpdateExpression: 'SET #cid=:cid,#ct=:ct,#jp=:jp, #ts=:ts',
+	            ReturnValues: 'ALL_NEW',
+	        };
+	        return new Promise(function (resolve, reject) {
+	            documentClient.update(params, function (err, data) {
+	                if (err) {
+	                    console.log(err);
+	                    reject("data is not inserted");
+	                }
+	                else {
+	                    console.log("updated booking Information in Booking Table");
+	                    resolve({ candidateId: candidateId, token: token, emailids: emailids, emailsubject: emailsubject, emailbody: emailbody });
+	                }
+	            });
+	        });
+	    };
+	    // send  mail to respective emailid - {email,body,subject}
+	    BookingServiceImpl.prototype.sendEmail = function (result) {
+	        var mydata = (JSON.parse(JSON.stringify(result)));
+	        //console.log("emailids", mydata.result.emailids);
+	        var emailConfig = {
+	            region: 'us-east-1'
+	        };
+	        var that = this;
+	        //console.log('that:' + JSON.stringify(that));
+	        var emailSES = new aws_sdk_1.SES(emailConfig);
+	        var prom = new Promise(function (res, rej) {
+	            if (!mydata.result.emailids) {
+	                rej('Please provide email');
+	                return prom;
+	            }
+	            var emailParams = that.createEmailParamConfig(mydata.result.emailids, mydata.result.emailsubject, mydata.result.emailbody, result.tokenid);
+	            emailSES.sendEmail(emailParams, function (err, data) {
+	                if (err) {
+	                    console.log(err);
+	                    rej("Error in sending out email " + err);
+	                    return prom;
+	                }
+	                res("Successfully sent email to " + mydata.result.emails);
+	            });
+	        });
+	        return prom;
+	    };
+	    BookingServiceImpl.prototype.createEmailParamConfig = function (email, subject, body, tokenid) {
+	        var params = {
+	            Destination: {
+	                BccAddresses: [],
+	                CcAddresses: [],
+	                ToAddresses: [email]
+	            },
+	            Message: {
+	                Body: {
+	                    Html: {
+	                        Data: body,
+	                        // this.generateEmailTemplate("ashok@amitisoft.com", tokenid, body),
+	                        Charset: 'UTF-8'
+	                    }
+	                },
+	                Subject: {
+	                    Data: subject,
+	                    Charset: 'UTF-8'
+	                }
+	            },
+	            Source: 'ashok@amitisoft.com',
+	            ReplyToAddresses: ['ashok@amitisoft.com'],
+	            ReturnPath: 'ashok@amitisoft.com'
+	        };
+	        return params;
+	    };
+	    BookingServiceImpl.prototype.generateEmailTemplate = function (emailFrom, tokenid, embody) {
+	        console.log("generate email");
+	        return "\n         <!DOCTYPE html>\n         <html>\n           <head>\n             <meta charset='UTF-8' />\n             <title>title</title>\n           </head>\n           <body>\n                  \n            <table border='0' cellpadding='0' cellspacing='0' height='100%' width='100%' id='bodyTable'>\n             <tr>\n                 <td align='center' valign='top'>\n                     <table border='0' cellpadding='20' cellspacing='0' width='600' id='emailContainer'>\n                         <tr style='background-color:#99ccff;'>\n                             <td align='center' valign='top'>\n                                 <table border='0' cellpadding='20' cellspacing='0' width='100%' id='emailBody'>\n                                     <tr>\n                                         <td align='center' valign='top' style='color:#337ab7;'>\n                                             <h3>embody\n\n                                             <a href=\"http://mail.amiti.in/verify.html?token=" + tokenid + "\">http://mail.amiti.in/verify.html?token=" + tokenid + "</a>\n                                             </h3>\n                                         </td>\n                                     </tr>\n                                 </table>\n                             </td>\n                         </tr>\n                         <tr style='background-color:#74a9d8;'>\n                             <td align='center' valign='top'>\n                                 <table border='0' cellpadding='20' cellspacing='0' width='100%' id='emailReply'>\n                                     <tr style='font-size: 1.2rem'>\n                                         <td align='center' valign='top'>\n                                             <span style='color:#286090; font-weight:bold;'>Send From:</span> <br/> " + emailFrom + "\n                                         </td>\n                                     </tr>\n                                 </table>\n                             </td>\n                         </tr>\n                     </table>\n                 </td>\n             </tr>\n             </table>\n           </body>\n         </html>\n";
+	    };
 	    return BookingServiceImpl;
 	}());
 	BookingServiceImpl = __decorate([
@@ -35043,6 +35042,10 @@ module.exports =
 	        this.bookingService = bookingService;
 	        console.log("in BookingFacade constructor()");
 	    }
+	    BookingFacade.prototype.findByCandidateId = function (candidateId, data) {
+	        console.log("in BookingFacade findByCandidateId()");
+	        return this.bookingService.findByCandidateId(candidateId, data);
+	    };
 	    return BookingFacade;
 	}());
 	BookingFacade = __decorate([
@@ -35137,15 +35140,16 @@ module.exports =
 
 	"use strict";
 	var candidate_facade_1 = __webpack_require__(353);
+	var booking_facade_1 = __webpack_require__(355);
 	var TestLinkHandler = (function () {
 	    function TestLinkHandler() {
 	    }
-	    TestLinkHandler.checkIsEmailExist = function (httpContext, injector) {
+	    TestLinkHandler.findCandidateByEmailId = function (httpContext, injector) {
 	        var data = httpContext.getRequestBody();
 	        //console.log(JSON.stringify(data)); 
-	        injector.get(candidate_facade_1.CandidateFacade).checkIsEmailExist(data)
+	        injector.get(candidate_facade_1.CandidateFacade).findCandidateByEmailId(data)
 	            .subscribe(function (result) {
-	            injector.get(candidate_facade_1.CandidateFacade).findById(JSON.parse(JSON.stringify(result)).candidateId, data)
+	            injector.get(booking_facade_1.BookingFacade).findByCandidateId(JSON.parse(JSON.stringify(result)).candidateId, data)
 	                .subscribe(function (result) {
 	                httpContext.ok(200, result);
 	            }, function (err) {
