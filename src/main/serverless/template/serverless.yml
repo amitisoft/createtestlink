@@ -21,9 +21,24 @@ provider:
   runtime: nodejs4.3
   profile: shortlist-serverless-template-dev
   environment:
-    DYNAMODB_TABLE: "candidate1"
-    BOOKING_TABLE : "booking1"
+    DYNAMODB_TABLE: "candidate"
+    BOOKING_TABLE : "booking"
   iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"  
+   
+    - Effect: Allow
+      Action:
+         - execute-api:Invoke
+      Resource: "arn:aws:execute-api:us-east-1:*:*"
+    
     - Effect: Allow
       Action:
         - dynamodb:Query
@@ -34,35 +49,44 @@ provider:
         - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}/*"
 
-    - Effect: "Allow"
+    - Effect: Allow
       Action:
-        - dynamodb:*
-      Resource: "*"
+         - execute-api:Invoke
+      Resource: "arn:aws:execute-api:us-east-1:*:*"
 
-    - "Effect": "Allow"
-      "Action": "SES:SendEmail"
-      "Resource": "*"
-
-    # - Effect: Allow
-    #   Action:
-    #     - execute-api:Invoke
-    #   Resource: "arn:aws:execute-api:us-east-1:*:*"
-
-    # - Effect: Allow
-    #   Action:
-    #     - dynamodb:Query
-    #     - dynamodb:Scan
-    #     - dynamodb:GetItem
-    #     - dynamodb:PutItem
-    #     - dynamodb:UpdateItem
-    #     - dynamodb:DeleteItem
-    #   Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.BOOKING_TABLE}/*"
+    - Effect: Allow
+      Action:
+         - dynamodb:Query
+         - dynamodb:Scan
+         - dynamodb:GetItem
+         - dynamodb:PutItem
+         - dynamodb:UpdateItem
+         - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.BOOKING_TABLE}"
 
     - Effect: Allow
       Action:
         - execute-api:Invoke
       Resource: "arn:aws:execute-api:us-east-1:*:*"
 
+    - Effect: Allow
+      Action:
+         - dynamodb:Query
+         - dynamodb:Scan
+         - dynamodb:GetItem
+         - dynamodb:PutItem
+         - dynamodb:UpdateItem
+         - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.BOOKING_TABLE}/*"
+
+    - Effect: Allow
+      Action:
+        - execute-api:Invoke
+      Resource: "arn:aws:execute-api:us-east-1:*:*"
+  
+    - "Effect": "Allow"
+      "Action": "SES:SendEmail"
+      "Resource": "*"
 
 functions:
 
@@ -82,7 +106,7 @@ functions:
 
 resources:
   Resources:
-     candidate1:
+     candidate:
           Type: 'AWS::DynamoDB::Table'
           DeletionPolicy: Retain
           Properties:
@@ -113,7 +137,7 @@ resources:
                   ReadCapacityUnits: "5"
                   WriteCapacityUnits: "5"
 
-     booking1:
+     booking:
           Type: 'AWS::DynamoDB::Table'
           DeletionPolicy: Retain
           Properties:
@@ -138,7 +162,7 @@ resources:
                     KeyType: HASH
                 Projection: 
                   #NonKeyAttributes: 
-                    #- "candidateId,category,dateofExam,jobPosition,bookingId"
+                  #  - "candidateId,category,dateofExam,jobPosition,bookingId"
                   ProjectionType: "ALL"
                 ProvisionedThroughput: 
                   ReadCapacityUnits: "5"

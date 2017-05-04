@@ -16,7 +16,7 @@ export class CandidateFacade {
     console.log("in CandidateFacade constructor()");
   }
 
-  findCandidateByEmailId(data: any): Observable<string> {
+  findCandidateByEmailId(data: any): Observable<Candidate> {
     return this.candidateService.findCandidateByEmailId(data);
   }
 

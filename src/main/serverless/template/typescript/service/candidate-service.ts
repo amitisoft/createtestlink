@@ -21,13 +21,12 @@ export class CandidateServiceImpl {
     }
    
         // checking email is Exist or not in Candidate table
-        findCandidateByEmailId(data: any): Observable<string> {
+        findCandidateByEmailId(data: any): Observable<Candidate> {
         
         console.log("in CandidateServiceImpl findCandidateByEmail()");
-
         let emailid = data.emails;
         const queryParams: DynamoDB.Types.QueryInput = {
-            TableName: "candidate1",
+            TableName: "candidate",
             IndexName: "emailIndex",
             ProjectionExpression: "candidateId",
             KeyConditionExpression: "#emailId = :emailIdFilter",
@@ -39,7 +38,7 @@ export class CandidateServiceImpl {
             }
         }
         const documentClient = new DocumentClient();
-        return Observable.create((observer: Observer<string>) => {
+        return Observable.create((observer: Observer<Candidate>) => {
             console.log("Executing query with parameters " + queryParams);
             documentClient.query(queryParams, (err, data: any) => {
                // console.log(`did we get error ${err}`);
@@ -50,8 +49,7 @@ export class CandidateServiceImpl {
                console.log(`data items:Email receieved ${data.Items.length}`);
                 if (data.Items.length === 0) {
                    console.log(" Email is not exist in candidates table "); //  Email is not present send to this msg
-                   //alert(" Email is not exist in candidates table ");
-                    observer.complete();
+                   //let msg=" Email is not exist in candidates table ";
                     return;
                 }
                 console.log("candidateID", data.Items[0].candidateId); // if email is exist then get the candidate Id

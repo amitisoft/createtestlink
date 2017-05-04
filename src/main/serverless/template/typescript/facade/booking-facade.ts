@@ -15,7 +15,7 @@ export class  BookingFacade {
         console.log("in BookingFacade constructor()");
     }
 
-    findByCandidateId(candidateId: string, data: any): Observable<Booking[]> {
+    findByCandidateId(candidateId: string, data: any): Observable<any> {
     console.log("in BookingFacade findByCandidateId()");
     return this.bookingService.findByCandidateId(candidateId, data);
   }

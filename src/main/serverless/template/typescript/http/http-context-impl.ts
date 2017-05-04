@@ -40,10 +40,16 @@ export class HttpContextImpl {
         return this.lambdaEvent.pathParameters;
     }
 
-    getRequestBody(): string {
-        return this.lambdaEvent.body;
-    }
+    // getRequestBody(): string {
+    //  return this.lambdaEvent.body;
+    //  }
 
+     getRequestBody(): any {
+     if (typeof this.lambdaEvent.body === 'string'){
+     this.lambdaEvent.body = JSON.parse(this.lambdaEvent.body);
+    }
+    return this.lambdaEvent.body;
+      }
     getRequestContext():any {
         return this.lambdaEvent.requestContext;
     }

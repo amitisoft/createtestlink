@@ -77,19 +77,7 @@
                     "dynamodb:UpdateItem",
                     "dynamodb:DeleteItem"
                   ],
-                  "Resource": "arn:aws:dynamodb:us-east-1:*:table/candidate1/*"
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "dynamodb:*"
-                  ],
-                  "Resource": "*"
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": "SES:SendEmail",
-                  "Resource": "*"
+                  "Resource": "arn:aws:dynamodb:us-east-1:*:table/candidate"
                 },
                 {
                   "Effect": "Allow",
@@ -97,6 +85,68 @@
                     "execute-api:Invoke"
                   ],
                   "Resource": "arn:aws:execute-api:us-east-1:*:*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query",
+                    "dynamodb:Scan",
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:DeleteItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:*:table/candidate/*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "execute-api:Invoke"
+                  ],
+                  "Resource": "arn:aws:execute-api:us-east-1:*:*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query",
+                    "dynamodb:Scan",
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:DeleteItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:*:table/booking"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "execute-api:Invoke"
+                  ],
+                  "Resource": "arn:aws:execute-api:us-east-1:*:*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query",
+                    "dynamodb:Scan",
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:DeleteItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:*:table/booking/*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "execute-api:Invoke"
+                  ],
+                  "Resource": "arn:aws:execute-api:us-east-1:*:*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "SES:SendEmail",
+                  "Resource": "*"
                 }
               ]
             }
@@ -123,7 +173,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/shortlist-template/dev/1493801624099-2017-05-03T08:53:44.099Z/shortlist-template.zip"
+          "S3Key": "serverless/shortlist-template/dev/1493904310246-2017-05-04T13:25:10.246Z/shortlist-template.zip"
         },
         "FunctionName": "shortlist-template-dev-createTestLinkFunction",
         "Handler": "handler.createTestLinkFunction",
@@ -138,8 +188,8 @@
         "Timeout": 6,
         "Environment": {
           "Variables": {
-            "DYNAMODB_TABLE": "candidate1",
-            "BOOKING_TABLE": "booking1"
+            "DYNAMODB_TABLE": "candidate",
+            "BOOKING_TABLE": "booking"
           }
         }
       },
@@ -148,14 +198,14 @@
         "IamRoleLambdaExecution"
       ]
     },
-    "CreateTestLinkFunctionLambdaVersionVTI8rf5A1lUIUTLZqSmXF0X9FgErvPDmfbnsRui780": {
+    "CreateTestLinkFunctionLambdaVersionrJp7c4MGlOS9gsGciR9NkQBOB3eN11YUwrOsDoc0": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "CreateTestLinkFunctionLambdaFunction"
         },
-        "CodeSha256": "VTI8rf5A1lUIUTLZqSmXF0X9FgErvPDmfbns+Rui780="
+        "CodeSha256": "rJp7c4+MGlOS9gsGciR9NkQBO/B3+eN11YUwrOsDoc0="
       }
     },
     "ApiGatewayRestApi": {
@@ -275,7 +325,7 @@
         "MethodResponses": []
       }
     },
-    "ApiGatewayDeployment1493801624116": {
+    "ApiGatewayDeployment1493904310260": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -320,11 +370,11 @@
         }
       }
     },
-    "candidate1": {
+    "candidate": {
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Retain",
       "Properties": {
-        "TableName": "candidate1",
+        "TableName": "candidate",
         "AttributeDefinitions": [
           {
             "AttributeName": "candidateId",
@@ -368,11 +418,11 @@
         ]
       }
     },
-    "booking1": {
+    "booking": {
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Retain",
       "Properties": {
-        "TableName": "booking1",
+        "TableName": "booking",
         "AttributeDefinitions": [
           {
             "AttributeName": "bookingId",
@@ -423,7 +473,7 @@
     "CreateTestLinkFunctionLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "CreateTestLinkFunctionLambdaVersionVTI8rf5A1lUIUTLZqSmXF0X9FgErvPDmfbnsRui780"
+        "Ref": "CreateTestLinkFunctionLambdaVersionrJp7c4MGlOS9gsGciR9NkQBOB3eN11YUwrOsDoc0"
       }
     },
     "ServiceEndpoint": {

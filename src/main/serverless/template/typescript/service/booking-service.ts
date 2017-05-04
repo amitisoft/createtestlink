@@ -18,49 +18,62 @@ export class BookingServiceImpl {
         console.log("in BookingServiceImpl constructor()");
     }
 
- // check Candidate ID exist or not in Booking table
-       findByCandidateId(candidateId:string,reqdata:any): Observable<Booking[]> {
-        console.log("in BookingServiceImpl findByCandidateId()");
-        const queryParams: DynamoDB.Types.QueryInput = {
-            TableName: "booking1",
-            IndexName: "candidateIdGSI",
-            ProjectionExpression:"category,dateofExam,jobPosition,bookingId",
-            KeyConditionExpression: "#candidateId = :candidateIdFilter",
-            ExpressionAttributeNames: {
-                "#candidateId": "candidateId"
-            },
-            ExpressionAttributeValues: {
-                ":candidateIdFilter": candidateId
-            }
-        }
-        const documentClient = new DocumentClient();
-        return Observable.create((observer: Observer<Booking[]>) => {
-            console.log("Executing query with parameters " + queryParams);
-            documentClient.query(queryParams, (err, data: any) => {
-                console.log(`did we get error ${err}`);
-                if (err) {
-                    observer.error(err);
-                    throw err;
-                }
-                console.log(`data items receieved ${data.Items.length}`);
-                //CandidateId is not exist in the Booking Table consider as a frehser  then book the slot.
-                if (data.Items.length === 0) {
+
+/**
+ * check Candidate ID 
+ * exist or not in 
+ * Booking table
+ */
+  
+ findByCandidateId(candidateId:string,reqdata:any):Observable<any> {
+          console.log("in BookingServiceImpl findByCandidateId()");
+                        const queryParams: DynamoDB.Types.QueryInput = {
+                        TableName: "booking",
+                        IndexName: "candidateIdGSI",
+                        ProjectionExpression:"category,dateofExam,jobPosition,bookingId",
+                        KeyConditionExpression: "#candidateId = :candidateIdFilter",
+                                ExpressionAttributeNames: {
+                                                            "#candidateId": "candidateId"
+                                                            },
+                                ExpressionAttributeValues: {
+                                                            ":candidateIdFilter": candidateId
+                                                            }
+                                                                                    }
+                                const documentClient = new DocumentClient();
+                                return Observable.create((observer: Observer<any>) => {
+                                console.log("Executing query with parameters " + queryParams);
+                                            documentClient.query(queryParams, (err, data: any) => {
+                                                console.log(`did we get error ${err}`);
+                                                        if (err) {
+                                                                    observer.error(err);
+                                                                    throw err;
+                                                                }
+                                console.log(`data items receieved ${data.Items.length}`);
+               /**
+                 *  CandidateId is not exist in the Booking Table consider as a frehser  then book the slot.
+                 */
+    if (data.Items.length === 0)
+    {
                     console.log(` this candidateID  ${candidateId} is not Exist in the Booking Table  `); 
-                    let token = Math.random().toString(36).substr(2);
+                    let token = uuid.v4();
                     let bookingId = uuid.v4();
                     this.updateBookingInfo(bookingId,candidateId,token,reqdata.category,reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
                         .then(this.updateCandidateInfo.bind(this))
                         .then(this.sendEmail.bind(this))
                         .then(() => {
-                            console.log(" Success fully Sending mails");
-                        }, (rej) => {
+                            //console.log(" Success fully Sending mail");
+                             let msg=" Success fully Sending mail";
+                             observer.next(msg);
+                              observer.complete();
+                                  }, (rej) => {
                             console.log("rejected", rej);
                         });
-                    observer.complete();
-                    return;
-                }
-                   
-                var cate = reqdata.category;
+                                   
+                     return;
+    }
+    else
+    { 
+                let cate = reqdata.category;
                 console.log(cate);
               
                 var sortingDatesArray = [];
@@ -71,54 +84,57 @@ export class BookingServiceImpl {
                         }
                     }
                 
-                   if(sortingDatesArray.length ===0)
-                   {
-                    let token = Math.random().toString(36).substr(2);
+         if(sortingDatesArray.length ===0)
+           {
+                    let token = uuid.v4();
                     let bookingId = uuid.v4();
                     this.updateBookingInfo(bookingId, candidateId,token,reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
                         .then(this.updateCandidateInfo.bind(this))
                         .then(this.sendEmail.bind(this))
                         .then(() => {
-                            console.log(" Success fully Sending mails");
+                             observer.next("Success fully Sending mail");
+                             observer.complete();
                         }, (rej) => {
                             console.log("rejected", rej);
                         });
-                       
-                   }
-                   else
-                   {
-                var srtarr = [];
-                for (var i = 0; i < sortingDatesArray.length; i++) {
-                    var df = sortingDatesArray[i].split('-'); 
-                    srtarr.push(Date.UTC(df[0], df[1] - 1, df[2]));// convert UTC format
-                }
-                srtarr.sort();// dates sorting 
-                var oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
-                var diffDays = Math.round(Math.abs((new Date(srtarr[i - 1]).getTime() - new Date().getTime()) / (oneDay)));
-                console.log(diffDays);
+                   return;      
+            }
+            else
+            {
+                             var srtarr = [];
+                             for (var i = 0; i < sortingDatesArray.length; i++) {
+                                    var df = sortingDatesArray[i].split('-'); 
+                                    srtarr.push(Date.UTC(df[0], df[1] - 1, df[2]));// convert UTC format
+                                                                                }
+                            srtarr.sort();// dates sorting 
+                            var oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+                            var diffDays = Math.round(Math.abs((new Date(srtarr[i - 1]).getTime() - new Date().getTime()) / (oneDay)));
+                            console.log(diffDays);
           
-            // validation of dates
-                if (30 < diffDays) {
-                    let token = Math.random().toString(36).substr(2);
-                    let bookingId = uuid.v4();
-                    //console.log(" allow");
-                    this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
+                            // validation of dates
+                                if (30 < diffDays) {
+                                                    let token = uuid.v4();
+                                                    let bookingId = uuid.v4();
+                         this.updateBookingInfo(bookingId, candidateId, token, reqdata.category, reqdata.jobPosition, reqdata.emails, reqdata.emailsubject, reqdata.emailbody)
                         .then(this.updateCandidateInfo.bind(this))
                         .then(this.sendEmail.bind(this))
                         .then(() => {
-                            console.log(" Success fully Sending mails");
+                            //console.log(" Success fully Sending mail");
+                              observer.next(" Success fully Sending mail");
+                              observer.complete();
                         }, (rej) => {
                             console.log("rejected", rej);
                         });
-                }
-                else {
-                    console.log("System does not allow with in 30 Days");
-                }
-            }
+                                                    }
+                                    else {
+                                       // console.log("System does not allow with in 30 Days");
+                                         observer.next("System does not allow with in 30 Days");
+                                         observer.complete();
+                                        }
+               }
+               
+              }    
                 
-                observer.next(data.Items);
-                observer.complete();
-
             });
         });
     }
@@ -128,7 +144,7 @@ export class BookingServiceImpl {
         console.log(`Update the tokenId :${result.token} in candidate table `);
         const documentClient = new DocumentClient();
         const params = {
-            TableName: "candidate1",
+            TableName: "candidate",
             Key: {
                 candidateId: result.candidateId,
             },
@@ -167,7 +183,7 @@ export class BookingServiceImpl {
         let testStatus = "Nottaken";
         const documentClient = new DocumentClient();
         const params = {
-            TableName: "booking1",
+            TableName: "booking",
             Key: {
                 bookingId: bookingId,
             },
@@ -239,7 +255,7 @@ export class BookingServiceImpl {
 
                     Html: {
                         Data:body,
-                        // this.generateEmailTemplate("ashok@amitisoft.com", tokenid, body),
+                         // this.generateEmailTemplate("ashok@amitisoft.com", tokenid, body),
                         Charset: 'UTF-8'
                     }
                 },
