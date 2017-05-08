@@ -11,18 +11,21 @@ export class HttpContextImpl {
     constructor(private lambdaEvent:any, private lambdaCallback: Callback) {
 
     }
-
-    ok(httpCode:number = 200, response?: any) {
-        const result = {
-            statusCode: httpCode,
-            headers:{},
-            body: null
-        };
-        if(response) {
-            result.body = JSON.stringify(response);
-        }
-        this.lambdaCallback(null,result);
-    }
+     ok(httpCode:number = 200, response?: any) {
+         const result = {
+             statusCode: httpCode,
+             headers:{
+                 "Access-Control-Allow-Headers":"*",
+                 "Access-Control-Allow-Methods":"*",
+                 "Access-Control-Allow-Origin":"*"
+             },
+             body: null
+         };
+         if(response) {
+             result.body = JSON.stringify(response);
+         }
+         this.lambdaCallback(null,result);
+     }
 
     fail(error: any,httpCode:number = 500,response?:any) {
         const result = {

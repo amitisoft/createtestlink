@@ -173,7 +173,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/shortlist-template/dev/1493904310246-2017-05-04T13:25:10.246Z/shortlist-template.zip"
+          "S3Key": "serverless/shortlist-template/dev/1493920006262-2017-05-04T17:46:46.262Z/shortlist-template.zip"
         },
         "FunctionName": "shortlist-template-dev-createTestLinkFunction",
         "Handler": "handler.createTestLinkFunction",
@@ -198,14 +198,14 @@
         "IamRoleLambdaExecution"
       ]
     },
-    "CreateTestLinkFunctionLambdaVersionrJp7c4MGlOS9gsGciR9NkQBOB3eN11YUwrOsDoc0": {
+    "CreateTestLinkFunctionLambdaVersionSvCMx69WICxSsaZaHjuUsJ1gpgqoLbGkf2R2XtEWYKE": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "CreateTestLinkFunctionLambdaFunction"
         },
-        "CodeSha256": "rJp7c4+MGlOS9gsGciR9NkQBO/B3+eN11YUwrOsDoc0="
+        "CodeSha256": "SvCMx69WICxSsaZaHjuUsJ1gpgqoLbGkf2R2XtEWYKE="
       }
     },
     "ApiGatewayRestApi": {
@@ -325,7 +325,7 @@
         "MethodResponses": []
       }
     },
-    "ApiGatewayDeployment1493904310260": {
+    "ApiGatewayDeployment1493920006262": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -473,7 +473,7 @@
     "CreateTestLinkFunctionLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "CreateTestLinkFunctionLambdaVersionrJp7c4MGlOS9gsGciR9NkQBOB3eN11YUwrOsDoc0"
+        "Ref": "CreateTestLinkFunctionLambdaVersionSvCMx69WICxSsaZaHjuUsJ1gpgqoLbGkf2R2XtEWYKE"
       }
     },
     "ServiceEndpoint": {

@@ -1,10 +1,10 @@
 {
    "body":
    {
-    "emails": "kiran@amitisoft.com",
-	"emailsubject": " Interview JAVA developer",
-    "jobPosition": "JAVA developer",
+    "emails": "sarath@amitisoft.com",
+	"emailsubject": " Interview AngularJs developer",
+    "jobPosition": "AngularJs  developer",
 	"emailbody": "Check & Click  testlink then possible Attend the exam  http://wwww.amitiexam.com",
-    "category": "JAVA"    
+    "category": "Angular4"    
   }
 }

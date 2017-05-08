@@ -30,7 +30,7 @@ export class BookingServiceImpl {
                         const queryParams: DynamoDB.Types.QueryInput = {
                         TableName: "booking",
                         IndexName: "candidateIdGSI",
-                        ProjectionExpression:"category,dateofExam,jobPosition,bookingId",
+                        ProjectionExpression:"category,dateofExam,jobPosition,bookingId,testStatus",
                         KeyConditionExpression: "#candidateId = :candidateIdFilter",
                                 ExpressionAttributeNames: {
                                                             "#candidateId": "candidateId"
@@ -75,10 +75,10 @@ export class BookingServiceImpl {
     { 
                 let cate = reqdata.category;
                 console.log(cate);
-              
                 var sortingDatesArray = [];
+                console.log(data.Items);
                 for (var i = 0; i < data.Items.length; i++) {
-                    if (cate === data.Items[i].category)
+                    if (cate === data.Items[i].category && data.Items[i].testStatus === "taken")
                         {
                         sortingDatesArray.push(data.Items[i].dateofExam); 
                         }
@@ -180,7 +180,7 @@ export class BookingServiceImpl {
         console.log(`data received jobPosition :${jobPosition}`);
         console.log(`data received bookingId :${bookingId}`);
 
-        let testStatus = "Nottaken";
+        let testStatus = "notTaken";
         const documentClient = new DocumentClient();
         const params = {
             TableName: "booking",
